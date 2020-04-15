@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <style>
+        html,
+        body {
+            background: rgba(255, 255, 255, 0);
+            width: 100%;
+            height: 100%;
+        }
+
+        #content {
+            position: absolute;
+            width: 80%;
+            left: 10%;
+            height: 80%;
+            top: 10vh;
+            color: white;
+
+            display: none;
+
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+            background: rgba(100, 100, 100, 1);
+        }
+
+        #content .table {
+            color: white;
+        }
+
+        .close {
+            position: absolute;
+            right: 32px;
+            top: 32px;
+            width: 32px;
+            height: 32px;
+            opacity: 0.3;
+        }
+
+        .close:hover {
+            opacity: 1;
+        }
+
+        .close:before,
+        .close:after {
+            position: absolute;
+            left: 15px;
+            content: ' ';
+            height: 33px;
+            width: 2px;
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .close:before {
+            transform: rotate(45deg);
+        }
+
+        .close:after {
+            transform: rotate(-45deg);
+        }
+
+        #banner {
+            height: 20vh;
+            background-color: rgba(51, 89, 198, 1);
+        }
+
+        #banner-img {
+            height: 100%;
+            padding: 10px;
+            vertical-align:middle;
+        }
+
+        #to-center h1 {
+            font-size: 4.2vh;
+        }
+
+        #to-center p {
+            font-style: italic;
+            font-size: 2vh;
+        }
+
+        .box {
+            display: flex;
+   align-items:center;
+        }
+    </style>
+
+    <title>es_stockmarket</title>
+</head>
+
+<body>
+    <div id="content">        
+        <div id="banner">
+            <div class="box" style="height: 100%;">
+                <img id="banner-img" class="rounded float-left" src="lcn.jpg">
+                <span style="margin-left: 5vw; font-style: italic; font-size: 4vh; text-align: center;"><b>Liberty City National</b><br><span style="font-size: 3vh">Exchange Index</span></span>
+            </div>
+
+            <a id="close" href="#" class="close"></a>
+        </div>
+
+        <table class="table table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th width="10" scope="col">#</th>
+                    <th width="50" scope="col">Abbreviation</th>
+                    <th scope="col">Full name</th>
+                    <th scope="col">Owned</th>
+                    <th scope="col">Worth</th>
+                    <th scope="col">Functions</th>
+                </tr>
+            </thead>
+            <tbody id="stockmarket">
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous">
+    </script>
+
+    <script src="ui.js"></script>
+</body>
+
+</html>
