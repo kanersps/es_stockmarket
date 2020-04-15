@@ -7,8 +7,8 @@ local config = {
     minRandom = GetConvarInt("es_stockmarket_minRandom", 2),
     maxRandom = GetConvarInt("es_stockmarket_maxRandom", 20),
     divider = GetConvarInt("es_stockmarket_divider", 10),
-    lowestBasePercent = GetConvarInt("es_stockmarket_divider", 70),
-    highestBacePercent = GetConvarInt("es_stockmarket_divider", 200),
+    lowestBasePercent = GetConvarInt("es_stockmarket_lowestBasePercent", 70),
+    highestBacePercent = GetConvarInt("es_stockmarket_highestBasePercent", 200),
 }
 
 -- Randomize pricing based on baseWorth
