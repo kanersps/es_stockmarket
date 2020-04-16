@@ -9,6 +9,7 @@ local config = {
     divider = GetConvarInt("es_stockmarket_divider", 10),
     lowestBasePercent = GetConvarInt("es_stockmarket_lowestBasePercent", 70),
     highestBacePercent = GetConvarInt("es_stockmarket_highestBasePercent", 200),
+    addDefault = GetConvarInt("es_stockmarket_addDefault", 1),
 }
 
 -- Randomize pricing based on baseWorth
@@ -41,7 +42,11 @@ AddEventHandler("es_stockmarket:addStock", function(abr, name, baseWorth)
     table.insert(stocks, {abr = abr, name = name, worth = 0, baseWorth = baseWorth})
 end)
 
-TriggerEvent("es_stockmarket:addStock", "GOO", "Googol", 150)
+if(config.addDefault)then
+    TriggerEvent("es_stockmarket:addStock", "GOO", "Googol", 150)
+    TriggerEvent("es_stockmarket:addStock", "FLC", "Fleeca", 130)
+    TriggerEvent("es_stockmarket:addStock", "BON", "Bong", 140)
+end
 
 RegisterServerEvent("es_stockmarket:updateStocks")
 AddEventHandler("es_stockmarket:updateStocks", function()
@@ -57,8 +62,10 @@ AddEventHandler("es_stockmarket:updateStocks", function()
     MySQL.Async.fetchAll('SELECT * FROM es_stockmarket WHERE owner=@owner', {['@owner'] = user.getIdentifier()}, function(ostocks)
         for j=1,#ostocks do
             for i=1,#_stocks do
-                if(_stocks[i].abr == ostocks[i].stock)then
-                    _stocks[i].owned = ostocks[i].amount
+                if(_stocks[i] and ostocks[j].stock)then
+                    if(_stocks[i].abr == ostocks[j].stock)then
+                        _stocks[i].owned = ostocks[j].amount
+                    end
                 end
             end
         end
@@ -101,10 +108,13 @@ AddEventHandler('es_stockmarket:buyStock', function(stock, amount)
 
                 for j=1,#ostocks do
                     for i=1,#_stocks do
-                        if(_stocks[i].abr == ostocks[i].stock)then
-                            _stocks[i].owned = ostocks[i].amount + amount
-                            newOwned = _stocks[i].owned
-                            done = true
+                        if(_stocks[i] and ostocks[j])then
+                            if(_stocks[i].abr == ostocks[j].stock and ostocks[j].stock == stock)then
+                                print(_stocks[i].abr .. " <> " .. ostocks[j].stock)
+                                _stocks[i].owned = ostocks[j].amount + amount
+                                newOwned = _stocks[j].owned
+                                done = true
+                            end
                         end
                     end
                 end
@@ -115,7 +125,7 @@ AddEventHandler('es_stockmarket:buyStock', function(stock, amount)
                     end)
                 else
                     MySQL.Async.execute("INSERT INTO es_stockmarket(stock, owner, amount) VALUES (@stock, @owner, @amount)", {['@stock'] = _stock.abr, ['@owner'] = user.getIdentifier(), ['@amount'] = amount}, function()
-                        TriggerClientEvent("es_stockmarket:updateStocks", _source, _stocks)
+                        TriggerClientEvent("es_stockmarket:setClientToUpdate", _source)
                     end)
                 end
             end)
@@ -158,15 +168,17 @@ AddEventHandler('es_stockmarket:sellStock', function(stock, amount)
 
             for j=1,#ostocks do
                 for i=1,#_stocks do
-                    if(_stocks[i].abr == ostocks[i].stock)then
-                        if(ostocks[i].amount >= amount)then
-                            _stocks[i].owned = ostocks[i].amount - amount
-                            newOwned = _stocks[i].owned
-                            sold = amount
-                            done = true
-                        end
+                    if(_stocks[i] and ostocks[j].stock)then
+                        if(_stocks[i].abr == ostocks[j].stock and stock == ostocks[j].stock) then
+                            if(ostocks[j].amount >= amount)then
+                                _stocks[i].owned = ostocks[j].amount - amount
+                                newOwned = _stocks[i].owned
+                                sold = amount
+                                done = true
+                            end
 
-                        break
+                            break
+                        end
                     end
                 end
             end

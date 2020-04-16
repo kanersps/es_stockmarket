@@ -1,13 +1,12 @@
 const setUI = (enable) => {
-    if(enable)
+    if (enable)
         document.getElementById("content").style.display = "block";
     else
         document.getElementById("content").style.display = "none";
 }
 
 const templateCompany = `
-<tr class="stock">
-    <th scope="row">ID</th>
+    <th class="stock" scope="row">ID</th>
     <td>ABR</td>
     <td>FULLNAME</td>
     <td id="ABR_owned">OWNED</td>
@@ -15,8 +14,8 @@ const templateCompany = `
     <td>
         <div class="btn-toolbar mb-3" role="toolbar" aria-label="Toolbar with button groups">
             <div class="btn-group mr-2" role="group" aria-label="First group">
-                <button type="button" id="ABR_buy" class="btn btn-primary">Buy</button>
-                <button type="button" id="ABR_sell" class="btn btn-secondary">Sell</button>
+                <button type="button" class="buy" id="ABR_buy" class="btn btn-primary">Buy</button>
+                <button type="button" class="sell"  id="ABR_sell" class="btn btn-secondary">Sell</button>
             </div>
             <div class="input-group">
                 <div class="input-group-prepend">
@@ -27,47 +26,57 @@ const templateCompany = `
             </div>
         </div>
     </td>
-</tr>
 `
 
 const addCompany = (abbreviation, name, owned, worth) => {
-    let modifiedTemplate = templateCompany;
-    modifiedTemplate = modifiedTemplate.replace("ID", (document.getElementsByClassName("stock").length + 1))
-    modifiedTemplate = modifiedTemplate.replace(/ABR/g, abbreviation)
-    modifiedTemplate = modifiedTemplate.replace("FULLNAME", name)
-    modifiedTemplate = modifiedTemplate.replace("OWNED", owned)
-    modifiedTemplate = modifiedTemplate.replace("WORTH", worth)
+    let modifiedTemplate = document.createElement("tr");
+    modifiedTemplate.innerHTML = templateCompany;
 
-    document.getElementById("stockmarket").innerHTML += modifiedTemplate;
+    modifiedTemplate.innerHTML = modifiedTemplate.innerHTML.replace("ID", (document.getElementsByClassName("stock").length + 1))
+    modifiedTemplate.innerHTML = modifiedTemplate.innerHTML.replace(/ABR/g, abbreviation)
+    modifiedTemplate.innerHTML = modifiedTemplate.innerHTML.replace("FULLNAME", name)
+    modifiedTemplate.innerHTML = modifiedTemplate.innerHTML.replace("OWNED", owned)
+    modifiedTemplate.innerHTML = modifiedTemplate.innerHTML.replace("WORTH", worth)
 
-    document.getElementById(`${abbreviation}_buy`).onclick = function() {
-        fetch(`https://${GetParentResourceName()}/buy`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json; charset=UTF-8',
-            },
-            body: JSON.stringify({
-                stock: abbreviation,
-                amount: document.getElementById(`${abbreviation}_amount`).value
+    document.getElementById("stockmarket").appendChild(modifiedTemplate);
+}
+
+const addHandlers = () => {
+    const buyButtons = document.getElementsByClassName("buy");
+    const sellButtons = document.getElementsByClassName("sell");
+
+    for (let bButton of buyButtons) {
+        bButton.onclick = () => {
+            fetch(`https://${GetParentResourceName()}/buy`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=UTF-8',
+                },
+                body: JSON.stringify({
+                    stock: bButton.id.replace("_buy", ""),
+                    amount: document.getElementById(`${bButton.id.replace("_buy", "")}_amount`).value
+                })
             })
-        })
+        }
     }
 
-    document.getElementById(`${abbreviation}_sell`).onclick = function() {
-        fetch(`https://${GetParentResourceName()}/sell`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json; charset=UTF-8',
-            },
-            body: JSON.stringify({
-                stock: abbreviation,
-                amount: document.getElementById(`${abbreviation}_amount`).value
+    for (let sButton of sellButtons) {
+        sButton.onclick = () => {
+            fetch(`https://${GetParentResourceName()}/sell`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json; charset=UTF-8',
+                },
+                body: JSON.stringify({
+                    stock: sButton.id.replace("_sell", ""),
+                    amount: document.getElementById(`${sButton.id.replace("_sell", "")}_amount`).value
+                })
             })
-        })
+        }
     }
 }
 
-document.getElementById("close").onclick = function(){
+document.getElementById("close").onclick = function () {
     setUI(false)
     fetch(`https://${GetParentResourceName()}/close`, {})
 }
@@ -85,8 +94,9 @@ window.addEventListener('message', (event) => {
         const stocks = JSON.parse(event.data.stocks);
 
         document.getElementById("stockmarket").innerHTML = "";
-        for(let stock of stocks) {
+        for (let stock of stocks) {
             addCompany(stock.abr, stock.name, stock.owned, stock.worth)
         }
+        addHandlers();
     }
 });
