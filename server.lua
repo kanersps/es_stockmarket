@@ -113,8 +113,6 @@ AddEventHandler('es_stockmarket:buyStock', function(stock, amount, test)
     
     if(_stock.abr)then
         if(user.getMoney() >= (_stock.worth * amount))then
-            local _stocks = stocks
-
             user.removeMoney(_stock.worth * amount)
             MySQL.Async.fetchAll('SELECT * FROM es_stockmarket WHERE owner=@owner', {['@owner'] = user.getIdentifier()}, function(ostocks)
                 local done = false
@@ -135,8 +133,6 @@ AddEventHandler('es_stockmarket:buyStock', function(stock, amount, test)
                             end
                             
                             if(userStockCache[user.getIdentifier()][i].abr == ostocks[j].stock and ostocks[j].stock == stock)then
-                                print(user.getIdentifier() .. ": bought " .. _stock.abr .. ", owns: " .. ostocks[j].amount)
-
                                 userStockCache[user.getIdentifier()][i].owned = ostocks[j].amount + amount
                                 newOwned = userStockCache[user.getIdentifier()][i].owned
                                 done = true
