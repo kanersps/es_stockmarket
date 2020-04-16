@@ -110,9 +110,8 @@ AddEventHandler('es_stockmarket:buyStock', function(stock, amount)
                     for i=1,#_stocks do
                         if(_stocks[i] and ostocks[j])then
                             if(_stocks[i].abr == ostocks[j].stock and ostocks[j].stock == stock)then
-                                print(_stocks[i].abr .. " <> " .. ostocks[j].stock)
                                 _stocks[i].owned = ostocks[j].amount + amount
-                                newOwned = _stocks[j].owned
+                                newOwned = _stocks[i].owned
                                 done = true
                             end
                         end
