@@ -61,23 +61,21 @@ AddEventHandler("es_stockmarket:updateStocks", function()
     local _source = source
     local user = exports.essentialmode:getPlayerFromId(_source)
 
-    user.addMoney(50000)
-
-    local _stocks = stocks
+    --user.addMoney(50000)
 
     userStockCache[user.getIdentifier()] = {}
 
-    shallowCopy(userStockCache[user.getIdentifier()], _stocks)
+    shallowCopy(userStockCache[user.getIdentifier()], stocks)
 
-    for i=1,#_stocks do
+    for i=1,#userStockCache[user.getIdentifier()] do
        userStockCache[user.getIdentifier()][i].owned = 0
     end
 
     MySQL.Async.fetchAll('SELECT * FROM es_stockmarket WHERE owner=@owner', {['@owner'] = user.getIdentifier()}, function(ostocks)
         for j=1,#ostocks do
-            for i=1,#_stocks do
+            for i=1,#userStockCache[user.getIdentifier()] do
                 if(userStockCache[user.getIdentifier()] and ostocks[j].stock)then
-                    if(_stocks[i].abr == ostocks[j].stock)then
+                    if(userStockCache[user.getIdentifier()][i].abr == ostocks[j].stock)then
                         userStockCache[user.getIdentifier()][i].owned = ostocks[j].amount
                     end
                 end
@@ -182,20 +180,26 @@ AddEventHandler('es_stockmarket:sellStock', function(stock, amount)
 
     
     if(_stock.abr)then
-        local _stocks = stocks
-
         MySQL.Async.fetchAll('SELECT * FROM es_stockmarket WHERE owner=@owner', {['@owner'] = user.getIdentifier()}, function(ostocks)
             local done = false
             local sold = 0
             local newOwned = 0
 
+            userStockCache[user.getIdentifier()] = {}
+
+            shallowCopy(userStockCache[user.getIdentifier()], stocks)
+        
+            for i=1,#userStockCache[user.getIdentifier()] do
+               userStockCache[user.getIdentifier()][i].owned = 0
+            end
+
             for j=1,#ostocks do
-                for i=1,#_stocks do
-                    if(_stocks[i] and ostocks[j].stock)then
-                        if(_stocks[i].abr == ostocks[j].stock and stock == ostocks[j].stock) then
+                for i=1,#userStockCache[user.getIdentifier()] do
+                    if(userStockCache[user.getIdentifier()][i] and ostocks[j].stock)then
+                        if(userStockCache[user.getIdentifier()][i].abr == ostocks[j].stock and stock == ostocks[j].stock) then
                             if(ostocks[j].amount >= amount)then
-                                _stocks[i].owned = ostocks[j].amount - amount
-                                newOwned = _stocks[i].owned
+                                userStockCache[user.getIdentifier()][i].owned = ostocks[j].amount - amount
+                                newOwned = userStockCache[user.getIdentifier()][i].owned
                                 sold = amount
                                 done = true
                             end
@@ -209,7 +213,7 @@ AddEventHandler('es_stockmarket:sellStock', function(stock, amount)
             if(done)then
                 user.addMoney(sold * _stock.worth)
                 MySQL.Async.execute("UPDATE es_stockmarket SET amount=@amount WHERE owner=@owner AND stock=@stock", {['@stock'] = _stock.abr, ['@owner'] = user.getIdentifier(), ['@amount'] = newOwned}, function()
-                    TriggerClientEvent("es_stockmarket:updateStocks", _source, _stocks)
+                    TriggerClientEvent("es_stockmarket:setClientToUpdate", _source)
                 end)
             end
         end)
