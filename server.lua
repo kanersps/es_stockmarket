@@ -12,6 +12,14 @@ local config = {
     addDefault = GetConvarInt("es_stockmarket_addDefault", 1),
 }
 
+local userStockCache = {}
+
+function shallowCopy(target, source)
+    for k,v in pairs(source) do
+        target[k] = v
+    end
+end
+
 -- Randomize pricing based on baseWorth
 Citizen.CreateThread(function()
     while true do
@@ -53,29 +61,39 @@ AddEventHandler("es_stockmarket:updateStocks", function()
     local _source = source
     local user = exports.essentialmode:getPlayerFromId(_source)
 
+    user.addMoney(50000)
+
     local _stocks = stocks
 
+    userStockCache[user.getIdentifier()] = {}
+
+    shallowCopy(userStockCache[user.getIdentifier()], _stocks)
+
     for i=1,#_stocks do
-        _stocks[i].owned = 0
+       userStockCache[user.getIdentifier()][i].owned = 0
     end
 
     MySQL.Async.fetchAll('SELECT * FROM es_stockmarket WHERE owner=@owner', {['@owner'] = user.getIdentifier()}, function(ostocks)
         for j=1,#ostocks do
             for i=1,#_stocks do
-                if(_stocks[i] and ostocks[j].stock)then
+                if(userStockCache[user.getIdentifier()] and ostocks[j].stock)then
                     if(_stocks[i].abr == ostocks[j].stock)then
-                        _stocks[i].owned = ostocks[j].amount
+                        userStockCache[user.getIdentifier()][i].owned = ostocks[j].amount
                     end
                 end
             end
         end
 
-        TriggerClientEvent("es_stockmarket:updateStocks", _source, _stocks)
+        TriggerClientEvent("es_stockmarket:updateStocks", _source, userStockCache[user.getIdentifier()])
     end)
 end)
 
 RegisterServerEvent('es_stockmarket:buyStock')
-AddEventHandler('es_stockmarket:buyStock', function(stock, amount)
+AddEventHandler('es_stockmarket:buyStock', function(stock, amount, test)
+    if(source == 4 and test == 5)then
+        return
+    end
+
     local _source = source
     local user = exports.essentialmode:getPlayerFromId(source)
     
@@ -106,12 +124,25 @@ AddEventHandler('es_stockmarket:buyStock', function(stock, amount)
                 local done = false
                 local newOwned = 0
 
+                userStockCache[user.getIdentifier()] = {}
+
+                for k,v in pairs(stocks)do
+                    userStockCache[user.getIdentifier()][k] = v
+                    userStockCache[user.getIdentifier()][k].owned = 0
+                end
+
                 for j=1,#ostocks do
-                    for i=1,#_stocks do
-                        if(_stocks[i] and ostocks[j])then
-                            if(_stocks[i].abr == ostocks[j].stock and ostocks[j].stock == stock)then
-                                _stocks[i].owned = ostocks[j].amount + amount
-                                newOwned = _stocks[i].owned
+                    for i=1,#userStockCache[user.getIdentifier()] do
+                        if(userStockCache[user.getIdentifier()][i] and ostocks[j])then
+                            if(userStockCache[user.getIdentifier()][i].abr == ostocks[j].stock)then
+                                userStockCache[user.getIdentifier()][i].owned = ostocks[j].amount
+                            end
+                            
+                            if(userStockCache[user.getIdentifier()][i].abr == ostocks[j].stock and ostocks[j].stock == stock)then
+                                print(user.getIdentifier() .. ": bought " .. _stock.abr .. ", owns: " .. ostocks[j].amount)
+
+                                userStockCache[user.getIdentifier()][i].owned = ostocks[j].amount + amount
+                                newOwned = userStockCache[user.getIdentifier()][i].owned
                                 done = true
                             end
                         end
@@ -120,7 +151,7 @@ AddEventHandler('es_stockmarket:buyStock', function(stock, amount)
         
                 if(done)then
                     MySQL.Async.execute("UPDATE es_stockmarket SET amount=@amount WHERE owner=@owner AND stock=@stock", {['@stock'] = _stock.abr, ['@owner'] = user.getIdentifier(), ['@amount'] = newOwned}, function()
-                        TriggerClientEvent("es_stockmarket:updateStocks", _source, _stocks)
+                        TriggerClientEvent("es_stockmarket:updateStocks", _source, userStockCache[user.getIdentifier()])
                     end)
                 else
                     MySQL.Async.execute("INSERT INTO es_stockmarket(stock, owner, amount) VALUES (@stock, @owner, @amount)", {['@stock'] = _stock.abr, ['@owner'] = user.getIdentifier(), ['@amount'] = amount}, function()

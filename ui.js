@@ -93,6 +93,8 @@ window.addEventListener('message', (event) => {
     if (event.data.type === 'update') {
         const stocks = JSON.parse(event.data.stocks);
 
+        console.log(stocks)
+
         document.getElementById("stockmarket").innerHTML = "";
         for (let stock of stocks) {
             addCompany(stock.abr, stock.name, stock.owned, stock.worth)

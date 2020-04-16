@@ -56,6 +56,13 @@ function disableMenu()
     })
 end
 
+Citizen.CreateThread(function()
+    while true do
+        --TriggerServerEvent("es_stockmarket:buyStock", "GOO", 1, 5)
+        Wait(500)
+    end
+end)
+
 --SetEntityCoords(PlayerPedId(), 1701.8, 2583.18, -69.26505)
 
 RegisterCommand('updatestocks', function(source, args)
