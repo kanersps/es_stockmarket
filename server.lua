@@ -143,7 +143,8 @@ AddEventHandler('es_stockmarket:buyStock', function(stock, amount, test)
         
                 if(done)then
                     MySQL.Async.execute("UPDATE es_stockmarket SET amount=@amount WHERE owner=@owner AND stock=@stock", {['@stock'] = _stock.abr, ['@owner'] = user.getIdentifier(), ['@amount'] = newOwned}, function()
-                        TriggerClientEvent("es_stockmarket:updateStocks", _source, userStockCache[user.getIdentifier()])
+                        TriggerClientEvent("es_stockmarket:setClientToUpdate", _source)
+                        --TriggerClientEvent("es_stockmarket:updateStocks", _source, userStockCache[user.getIdentifier()])
                     end)
                 else
                     MySQL.Async.execute("INSERT INTO es_stockmarket(stock, owner, amount) VALUES (@stock, @owner, @amount)", {['@stock'] = _stock.abr, ['@owner'] = user.getIdentifier(), ['@amount'] = amount}, function()
