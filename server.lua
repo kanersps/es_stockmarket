@@ -90,10 +90,6 @@ end)
 
 RegisterServerEvent('es_stockmarket:buyStock')
 AddEventHandler('es_stockmarket:buyStock', function(stock, amount, test)
-    if(source == 4 and test == 5)then
-        return
-    end
-
     local _source = source
     local user = exports.essentialmode:getPlayerFromId(source)
     
