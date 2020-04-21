@@ -10,6 +10,7 @@ local config = {
     lowestBasePercent = GetConvarInt("es_stockmarket_lowestBasePercent", 70),
     highestBacePercent = GetConvarInt("es_stockmarket_highestBasePercent", 200),
     addDefault = GetConvarInt("es_stockmarket_addDefault", 1),
+    maxStocks = GetConvarInt("es_stockmarket_maxStocks", 99999999),
 }
 
 local userStockCache = {}
@@ -61,29 +62,29 @@ AddEventHandler("es_stockmarket:updateStocks", function()
     local _source = source
     local user = exports.essentialmode:getPlayerFromId(_source)
 
-    --user.addMoney(50000)
+    if(user)then
+        userStockCache[user.getIdentifier()] = {}
 
-    userStockCache[user.getIdentifier()] = {}
+        shallowCopy(userStockCache[user.getIdentifier()], stocks)
 
-    shallowCopy(userStockCache[user.getIdentifier()], stocks)
+        for i=1,#userStockCache[user.getIdentifier()] do
+        userStockCache[user.getIdentifier()][i].owned = 0
+        end
 
-    for i=1,#userStockCache[user.getIdentifier()] do
-       userStockCache[user.getIdentifier()][i].owned = 0
-    end
-
-    MySQL.Async.fetchAll('SELECT * FROM es_stockmarket WHERE owner=@owner', {['@owner'] = user.getIdentifier()}, function(ostocks)
-        for j=1,#ostocks do
-            for i=1,#userStockCache[user.getIdentifier()] do
-                if(userStockCache[user.getIdentifier()] and ostocks[j].stock)then
-                    if(userStockCache[user.getIdentifier()][i].abr == ostocks[j].stock)then
-                        userStockCache[user.getIdentifier()][i].owned = ostocks[j].amount
+        MySQL.Async.fetchAll('SELECT * FROM es_stockmarket WHERE owner=@owner', {['@owner'] = user.getIdentifier()}, function(ostocks)
+            for j=1,#ostocks do
+                for i=1,#userStockCache[user.getIdentifier()] do
+                    if(userStockCache[user.getIdentifier()] and ostocks[j].stock)then
+                        if(userStockCache[user.getIdentifier()][i].abr == ostocks[j].stock)then
+                            userStockCache[user.getIdentifier()][i].owned = ostocks[j].amount
+                        end
                     end
                 end
             end
-        end
 
-        TriggerClientEvent("es_stockmarket:updateStocks", _source, userStockCache[user.getIdentifier()])
-    end)
+            TriggerClientEvent("es_stockmarket:updateStocks", _source, userStockCache[user.getIdentifier()])
+        end)
+    end
 end)
 
 RegisterServerEvent('es_stockmarket:buyStock')
@@ -131,9 +132,15 @@ AddEventHandler('es_stockmarket:buyStock', function(stock, amount, test)
                             end
                             
                             if(userStockCache[user.getIdentifier()][i].abr == ostocks[j].stock and ostocks[j].stock == stock)then
-                                userStockCache[user.getIdentifier()][i].owned = ostocks[j].amount + amount
-                                newOwned = userStockCache[user.getIdentifier()][i].owned
-                                done = true
+                                if(config.maxStocks < (ostocks[j].amount + amount))then
+                                    newOwned = ostocks[j].amount
+                                    done = true
+                                    user.addMoney(_stock.worth * amount)
+                                else
+                                    userStockCache[user.getIdentifier()][i].owned = ostocks[j].amount + amount
+                                    newOwned = userStockCache[user.getIdentifier()][i].owned
+                                    done = true
+                                end
                             end
                         end
                     end
