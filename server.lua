@@ -218,8 +218,8 @@ AddEventHandler('es_stockmarket:sellStock', function(stock, amount)
             end
         
             if(done)then
-                user.addMoney(sold * _stock.worth)
                 MySQL.Async.execute("UPDATE es_stockmarket SET amount=@amount WHERE owner=@owner AND stock=@stock", {['@stock'] = _stock.abr, ['@owner'] = user.getIdentifier(), ['@amount'] = newOwned}, function()
+                    user.addMoney(sold * _stock.worth)
                     TriggerClientEvent("es_stockmarket:setClientToUpdate", _source)
                 end)
             end
